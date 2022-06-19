@@ -4,81 +4,82 @@
 #include "global.h"
 #include "ship.h"
 #include "colorPairs.h"
+#include "window.h"
 
 
 int main (int argc, char *argv[])
 {
-	int errorStatus = 0;
 
 	initscr ();
 	cbreak ();
 	noecho ();
 	curs_set (0);
-	timeout (0); //don't block for input
 	start_color ();
 	keypad (stdscr, true);
-
-	WINDOW * window = stdscr;
 
 	//from colorPairs.h
 	initColorPairs ();
 
-	uint32_t beg_y;
-	uint32_t beg_x;
-
-	uint32_t max_y;
-	uint32_t max_x;
-
+	int errorStatus = 0;
 	int ch;
 
-	getmaxyx (window, max_y, max_x);
-	getbegyx (stdscr, beg_y, beg_x);
-
-	getmaxyx (window, max_y, max_x);
-	getbegyx (stdscr, beg_y, beg_x);
-
-	if (max_x - beg_x < 80 || max_y - beg_y < 30) {
-		wclear (window);
-		mvwprintw (window, 0, 0, "Screen is smaller than 80x30\n"
-			" Press q to exit");
+	if (COLS < 80 || LINES < 30) {
+		clear ();
+		mvprintw (0, 0, "Screen is smaller than 80x30\n."
+				"Actual dimensions: %dx%d"
+				" Press q to exit", COLS, LINES);
+		refresh ();
 		while ((ch = getch ()) != 'q')
 			;
 
 		endwin ();
 		return -1;
 	}
-	Ship ship = newShip (window, (Point) {max_y - 3, (max_x - beg_x) / 2}, 10, 1);
-	showShip (window, ship);
 
-	while ((ch = wgetch (window)) && ch != 'q') {
-		getmaxyx (window, max_y, max_x);
-		getbegyx (stdscr, beg_y, beg_x);
+	//create a seperate window for the game
+	//as stdscr is used for messages and info
+	Window gameWindow = newWindow (0, 0, LINES - 1, COLS, ACS_HLINE, ACS_HLINE,
+			ACS_VLINE, ACS_VLINE, ACS_ULCORNER, ACS_URCORNER, ACS_LLCORNER,
+			ACS_LRCORNER, COLOR_PAIR (WHITE_ON_BLACK) | A_DIM);
 
-		getmaxyx (window, max_y, max_x);
-		getbegyx (stdscr, beg_y, beg_x);
-		wborder (window, ACS_VLINE, ACS_VLINE, ACS_HLINE, ACS_HLINE,
-				ACS_ULCORNER, ACS_URCORNER, ACS_LLCORNER, ACS_LRCORNER);
+	Ship ship = newShip (gameWindow.end.y - 3,
+		(gameWindow.end.x - gameWindow.begin.x) / 2, 10, 1,
+		COLOR_PAIR (YELLOW_ON_BLACK) | A_BOLD);
 
-		attron (COLOR_PAIR (YELLOW_ON_BLACK) | A_BOLD);
-		standend ();
+	drawBorder (&gameWindow);
+	showShip (&gameWindow, &ship);
 
+	while ((ch = wgetch (gameWindow.ncursesWin)) != 'q') {
 		switch (ch) {
 			case KEY_LEFT: case 'h':
-				moveShipLeft (window, beg_x, max_x, &ship);	
+				hideShip (&gameWindow, &ship);
+				moveShipLeft (gameWindow.begin.x, gameWindow.end.x, &ship);
 				break;
 			case KEY_RIGHT: case 'l':
-				moveShipRight (window, beg_x, max_x, &ship);	
+				hideShip (&gameWindow, &ship);
+				moveShipRight (gameWindow.begin.x, gameWindow.end.x, &ship);
 				break;
 			case ' ': case 'k':
-				//shoot (&ship);
+				//bullets aren't erased if only one is to be added
+				shoot (&ship);
 				break;
 			default:
 				break;
 		}
-		wrefresh (window);
+
+		if (ship.shipNeedsReprinting == true) {
+			showShip (&gameWindow, &ship);
+		}
+		if (ship.weapon.bulletsNeedReprinting == true) {
+			showBullets (&gameWindow, &ship);
+		}
+		if (gameWindow.windowNeedsRefresh == true) {
+			refreshWindow (&gameWindow);
+		}
 	}
 
 	destroyShip (&ship);
+	deleteWindow (&gameWindow);
 	endwin ();
 
 	return errorStatus;

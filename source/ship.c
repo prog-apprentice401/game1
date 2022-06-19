@@ -1,28 +1,24 @@
 #include <stdlib.h>
 #include <ncurses.h>
 #include <curses.h>
+
 #include "global.h"
 #include "ship.h"
 #include "colorPairs.h"
+#include "window.h"
 
-Ship newShip (WINDOW *window, Point initPosition, uint8_t maxBullets, uint8_t lives)
+Ship newShip (uint16_t init_y, uint16_t init_x, uint8_t maxBullets, uint8_t lives,
+	attr_t shipAttributes)
 {
-	uint8_t begin_x;
-	uint8_t begin_y;
-	getbegyx (window, begin_y, begin_x);
-
-	uint8_t max_x;
-	uint8_t max_y;
-	getmaxyx (window, max_y, max_x);
-
-	//start the ship in the center
 	Ship ship;
-	ship.position.y = initPosition.y;
-	ship.position.x = initPosition.x;
+	ship.position.y = init_y;
+	ship.position.x = init_x;
 	ship.lives = lives;
 	ship.weapon.currentBullets = 0;
 	ship.weapon.maxBullets = maxBullets;
 	ship.weapon.bulletsArray = NULL;
+	ship.weapon.bulletsNeedReprinting = false;
+	ship.shipAttributes = shipAttributes;
 
 	ship.weapon.bulletsArray = (Point *) calloc (maxBullets, sizeof (Point));
 	
@@ -33,46 +29,89 @@ Ship newShip (WINDOW *window, Point initPosition, uint8_t maxBullets, uint8_t li
 void destroyShip (Ship *shipPtr)
 {
 	free (shipPtr->weapon.bulletsArray);
-	shipPtr->weapon.bulletsArray = 0;
+	shipPtr->weapon.bulletsArray = NULL;
 }
 
-void showShip (WINDOW *window, Ship ship)
+void showShip (Window *windowPtr, Ship *shipPtr)
 {
-	mvwprintw (window, ship.position.y - 1, ship.position.x, "*");
-	mvwprintw (window, ship.position.y, ship.position.x - 1, "/_\\");
+	wattron (windowPtr->ncursesWin, shipPtr->shipAttributes);
+	mvwaddch (windowPtr->ncursesWin, shipPtr->position.y, shipPtr->position.x, '*');
+	mvwaddstr (windowPtr->ncursesWin, shipPtr->position.y + 1, shipPtr->position.x - 1,
+		"/_\\");
+
+	windowPtr->windowNeedsRefresh = true;
+	shipPtr->shipNeedsReprinting = false;
 
 	return;
 }
 
-void hideShip (WINDOW *window, Ship ship)
+void hideShip (Window *windowPtr, Ship *shipPtr)
 {
-	mvwprintw (window, ship.position.y - 1, ship.position.x, " ");
-	mvwprintw (window, ship.position.y, ship.position.x - 1, "   ");
+	wstandend (windowPtr->ncursesWin);
+	mvwaddch (windowPtr->ncursesWin, shipPtr->position.y, shipPtr->position.x, ' ');
+	mvwaddstr (windowPtr->ncursesWin, shipPtr->position.y + 1, shipPtr->position.x - 1,
+		"   ");
+
+	windowPtr->windowNeedsRefresh = true;
+	shipPtr->shipNeedsReprinting = true;
 
 	return;
 }
 
-void moveShipRight (WINDOW *window, uint32_t beg_x, uint32_t max_x, Ship *shipPtr)
+void moveShipRight (int16_t beg_x, int16_t max_x, Ship *shipPtr)
 {
-	hideShip (window, *shipPtr);
 	shipPtr->position.x = (shipPtr->position.x < max_x - 3)
-				? shipPtr->position.x + 1 : beg_x + 2;
-	attron (COLOR_PAIR (YELLOW_ON_BLACK) | A_BOLD);
-	showShip (window, *shipPtr);
-	standend ();
-
+			? shipPtr->position.x + 1 : beg_x + 2;
+	shipPtr->shipNeedsReprinting = true;
 	return;
 }
 
-void moveShipLeft (WINDOW *window, uint32_t beg_x, uint32_t max_x, Ship *shipPtr)
+void moveShipLeft (int16_t beg_x, int16_t max_x, Ship *shipPtr)
 {
-	hideShip (window, *shipPtr);
 	shipPtr->position.x = (shipPtr->position.x > beg_x + 2
 			&& shipPtr->position.x < max_x - 2)
-				? shipPtr->position.x - 1 : max_x - 3;
-	attron (COLOR_PAIR (YELLOW_ON_BLACK) | A_BOLD);
-	showShip (window, *shipPtr);
-	standend ();
+			? shipPtr->position.x - 1 : max_x - 3;
+	shipPtr->shipNeedsReprinting = true;
+	return;
+}
+
+void hideBullets (Window *windowPtr, Ship *shipPtr)
+{
+	Point *temp = shipPtr->weapon.bulletsArray;
+
+	for (int i = 0; i < shipPtr->weapon.currentBullets; i++) {
+		mvwaddch (windowPtr->ncursesWin, temp[i].y, temp[i].x, ACS_DIAMOND);
+	}
+
+	windowPtr->windowNeedsRefresh = true;
+	shipPtr->weapon.bulletsNeedReprinting = true;
+	return;
+}
+
+void showBullets (Window *windowPtr, Ship *shipPtr)
+{
+	Point *temp = shipPtr->weapon.bulletsArray;
+
+	for (int i = 0; i < shipPtr->weapon.currentBullets; i++) {
+		mvwaddch (windowPtr->ncursesWin, temp[i].y, temp[i].x, ACS_DIAMOND);
+	}
+
+	windowPtr->windowNeedsRefresh = true;
+	shipPtr->weapon.bulletsNeedReprinting = false;
 
 	return;
+}
+
+void shoot (Ship *shipPtr)
+{
+	if (shipPtr->weapon.currentBullets >= shipPtr->weapon.maxBullets) {
+		return;
+	}
+	uint8_t newBulletIndex = shipPtr->weapon.currentBullets;
+
+	shipPtr->weapon.bulletsArray[newBulletIndex].y = shipPtr->position.y - 1;
+	shipPtr->weapon.bulletsArray[newBulletIndex].x = shipPtr->position.x;
+
+	shipPtr->weapon.currentBullets++;
+	shipPtr->weapon.bulletsNeedReprinting = true;
 }
