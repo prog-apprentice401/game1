@@ -14,7 +14,6 @@ Window newWindow (int16_t begin_y, int16_t begin_x, int16_t max_y, int16_t max_x
 	//wait indefinitely, so that loop doesn't consume too much cpu
 	wtimeout (localwin.ncursesWin, -1);
 	curs_set (0);
-	
 
 	localwin.begin.y = begin_y;
 	localwin.begin.x = begin_x;

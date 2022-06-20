@@ -9,7 +9,6 @@
 
 int main (int argc, char *argv[])
 {
-
 	initscr ();
 	cbreak ();
 	noecho ();
@@ -25,12 +24,11 @@ int main (int argc, char *argv[])
 
 	if (COLS < 80 || LINES < 30) {
 		clear ();
-		mvprintw (0, 0, "Screen is smaller than 80x30\n."
-				"Actual dimensions: %dx%d"
+		mvprintw (0, 0, "Screen is smaller than 80x30\n"
+				"Current dimensions: %dx%d"
 				" Press q to exit", COLS, LINES);
 		refresh ();
-		while ((ch = getch ()) != 'q')
-			;
+		ch = getch ();
 
 		endwin ();
 		return -1;
@@ -43,8 +41,8 @@ int main (int argc, char *argv[])
 			ACS_LRCORNER, COLOR_PAIR (WHITE_ON_BLACK) | A_DIM);
 
 	Ship ship = newShip (gameWindow.end.y - 3,
-		(gameWindow.end.x - gameWindow.begin.x) / 2, 10, 1,
-		COLOR_PAIR (YELLOW_ON_BLACK) | A_BOLD);
+		(gameWindow.end.x - gameWindow.begin.x) / 2,
+		10, 1, COLOR_PAIR (YELLOW_ON_BLACK) | A_BOLD);
 
 	drawBorder (&gameWindow);
 	showShip (&gameWindow, &ship);

@@ -1,10 +1,14 @@
 #include <ncurses.h>
+#include <time.h>
 #include "window.h"
 #include "global.h"
 
 #ifndef __SHIP_H__
 	#define __SHIP_H__
-
+	typedef struct Bullet {
+		Point position;
+		clock_t positionLastUpdatedAtClock;
+	} Bullet;
 
 	typedef struct Ship {
 		Point position;
@@ -13,7 +17,7 @@
 			uint8_t currentBullets;
 			uint8_t maxBullets;
 			//will be allocated at runtime in memory
-			Point * bulletsArray;
+			Bullet *bulletsArray;
 			_Bool bulletsNeedReprinting;
 		} weapon;
 		attr_t shipAttributes;

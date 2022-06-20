@@ -20,7 +20,7 @@ Ship newShip (uint16_t init_y, uint16_t init_x, uint8_t maxBullets, uint8_t live
 	ship.weapon.bulletsNeedReprinting = false;
 	ship.shipAttributes = shipAttributes;
 
-	ship.weapon.bulletsArray = (Point *) calloc (maxBullets, sizeof (Point));
+	ship.weapon.bulletsArray = (Bullet *) calloc (maxBullets, sizeof (Bullet));
 	
 	//size is small enough for returning value
 	return ship;
@@ -77,10 +77,9 @@ void moveShipLeft (int16_t beg_x, int16_t max_x, Ship *shipPtr)
 
 void hideBullets (Window *windowPtr, Ship *shipPtr)
 {
-	Point *temp = shipPtr->weapon.bulletsArray;
-
 	for (int i = 0; i < shipPtr->weapon.currentBullets; i++) {
-		mvwaddch (windowPtr->ncursesWin, temp[i].y, temp[i].x, ACS_DIAMOND);
+		mvwaddch (windowPtr->ncursesWin, shipPtr->weapon.bulletsArray[i].position.y,
+			shipPtr->weapon.bulletsArray[i].position.x, ' ');
 	}
 
 	windowPtr->windowNeedsRefresh = true;
@@ -90,10 +89,9 @@ void hideBullets (Window *windowPtr, Ship *shipPtr)
 
 void showBullets (Window *windowPtr, Ship *shipPtr)
 {
-	Point *temp = shipPtr->weapon.bulletsArray;
-
 	for (int i = 0; i < shipPtr->weapon.currentBullets; i++) {
-		mvwaddch (windowPtr->ncursesWin, temp[i].y, temp[i].x, ACS_DIAMOND);
+		mvwaddch (windowPtr->ncursesWin, shipPtr->weapon.bulletsArray[i].position.y,
+			shipPtr->weapon.bulletsArray[i].position.x, ACS_DIAMOND);
 	}
 
 	windowPtr->windowNeedsRefresh = true;
@@ -109,8 +107,9 @@ void shoot (Ship *shipPtr)
 	}
 	uint8_t newBulletIndex = shipPtr->weapon.currentBullets;
 
-	shipPtr->weapon.bulletsArray[newBulletIndex].y = shipPtr->position.y - 1;
-	shipPtr->weapon.bulletsArray[newBulletIndex].x = shipPtr->position.x;
+	shipPtr->weapon.bulletsArray[newBulletIndex].position.y = shipPtr->position.y - 1;
+	shipPtr->weapon.bulletsArray[newBulletIndex].position.x = shipPtr->position.x;
+	shipPtr->weapon.bulletsArray[newBulletIndex].positionLastUpdatedAtClock = clock ();
 
 	shipPtr->weapon.currentBullets++;
 	shipPtr->weapon.bulletsNeedReprinting = true;

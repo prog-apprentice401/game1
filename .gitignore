@@ -1,3 +1,3 @@
-**/*.swp
-**/*.out
-**/game1
+*.swp
+*.out
+game1
