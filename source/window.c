@@ -11,8 +11,9 @@ Window newWindow (int16_t begin_y, int16_t begin_x, int16_t max_y, int16_t max_x
 	localwin.ncursesWin = newwin (max_y - begin_y, max_x - begin_x, begin_y, begin_x);
 	keypad (localwin.ncursesWin, true);
 	
-	//wait indefinitely, so that loop doesn't consume too much cpu
-	wtimeout (localwin.ncursesWin, -1);
+	//wait for 100 ms, so loop is blocked just enough to
+	//ease things for CPU
+	wtimeout (localwin.ncursesWin, 100);
 	curs_set (0);
 
 	localwin.begin.y = begin_y;

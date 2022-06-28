@@ -64,13 +64,12 @@ int main (int argc, char *argv[])
 			default:
 				break;
 		}
-
 		if (ship.shipNeedsReprinting == true) {
 			showShip (&gameWindow, &ship);
-		}
-		if (ship.weapon.bulletsNeedReprinting == true) {
+		} else if (ship.weapon.bulletsNeedReprinting == true) {
 			showBullets (&gameWindow, &ship);
 		}
+
 		if (gameWindow.windowNeedsRefresh == true) {
 			refreshWindow (&gameWindow);
 		}
