@@ -34,15 +34,18 @@ int main (int argc, char *argv[])
 		return -1;
 	}
 
+	//default border to use for windows
+	Border defaultBorder = {ACS_HLINE, ACS_HLINE, ACS_VLINE, ACS_VLINE, ACS_ULCORNER, ACS_URCORNER, ACS_LLCORNER, ACS_LRCORNER, COLOR_PAIR (WHITE_ON_BLACK) | A_DIM};
+	Point begin = {0, 0};
+	Point end = {LINES - 1, COLS};
+
 	//create a seperate window for the game
 	//as stdscr is used for messages and info
-	Window gameWindow = newWindow (0, 0, LINES - 1, COLS, ACS_HLINE, ACS_HLINE,
-			ACS_VLINE, ACS_VLINE, ACS_ULCORNER, ACS_URCORNER, ACS_LLCORNER,
-			ACS_LRCORNER, COLOR_PAIR (WHITE_ON_BLACK) | A_DIM);
+	Window gameWindow = newWindow (begin, end, defaultBorder);
 
-	Ship ship = newShip (gameWindow.end.y - 3,
-		(gameWindow.end.x - gameWindow.begin.x) / 2,
-		10, 1, COLOR_PAIR (YELLOW_ON_BLACK) | A_BOLD);
+	Point shipSpawningPoint = {gameWindow.end.y - 3, (gameWindow.end.x - gameWindow.begin.x) / 2};
+
+	Ship ship = newShip (shipSpawningPoint, 10, 1, COLOR_PAIR (YELLOW_ON_BLACK) | A_BOLD);
 
 	drawBorder (&gameWindow);
 	showShip (&gameWindow, &ship);

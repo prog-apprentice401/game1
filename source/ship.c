@@ -7,12 +7,11 @@
 #include "colorPairs.h"
 #include "window.h"
 
-Ship newShip (uint16_t init_y, uint16_t init_x, uint8_t maxBullets, uint8_t lives,
-	attr_t shipAttributes)
+Ship newShip (Point spawningPoint, uint8_t maxBullets, uint8_t lives, attr_t shipAttributes)
 {
 	Ship ship;
-	ship.position.y = init_y;
-	ship.position.x = init_x;
+	ship.position.y = spawningPoint.y;
+	ship.position.x = spawningPoint.x;
 	ship.lives = lives;
 	ship.weapon.currentBullets = 0;
 	ship.weapon.maxBullets = maxBullets;
@@ -35,9 +34,8 @@ void destroyShip (Ship *shipPtr)
 void showShip (Window *windowPtr, Ship *shipPtr)
 {
 	wattron (windowPtr->ncursesWin, shipPtr->shipAttributes);
-	mvwaddch (windowPtr->ncursesWin, shipPtr->position.y, shipPtr->position.x, '*');
-	mvwaddstr (windowPtr->ncursesWin, shipPtr->position.y + 1, shipPtr->position.x - 1,
-		"/_\\");
+	mvwaddch (windowPtr->ncursesWin, shipPtr->position.y, shipPtr->position.x, '^');
+	mvwaddstr (windowPtr->ncursesWin, shipPtr->position.y + 1, shipPtr->position.x - 1, "/_\\");
 
 	windowPtr->windowNeedsRefresh = true;
 	shipPtr->shipNeedsReprinting = false;
@@ -49,8 +47,7 @@ void hideShip (Window *windowPtr, Ship *shipPtr)
 {
 	wstandend (windowPtr->ncursesWin);
 	mvwaddch (windowPtr->ncursesWin, shipPtr->position.y, shipPtr->position.x, ' ');
-	mvwaddstr (windowPtr->ncursesWin, shipPtr->position.y + 1, shipPtr->position.x - 1,
-		"   ");
+	mvwaddstr (windowPtr->ncursesWin, shipPtr->position.y + 1, shipPtr->position.x - 1, "   ");
 
 	windowPtr->windowNeedsRefresh = true;
 	shipPtr->shipNeedsReprinting = true;
@@ -91,7 +88,7 @@ void showBullets (Window *windowPtr, Ship *shipPtr)
 {
 	for (int i = 0; i < shipPtr->weapon.currentBullets; i++) {
 		mvwaddch (windowPtr->ncursesWin, shipPtr->weapon.bulletsArray[i].position.y,
-			shipPtr->weapon.bulletsArray[i].position.x, ACS_DIAMOND);
+			shipPtr->weapon.bulletsArray[i].position.x, '*');
 	}
 
 	windowPtr->windowNeedsRefresh = true;

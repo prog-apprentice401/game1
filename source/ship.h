@@ -1,5 +1,6 @@
 #include <ncurses.h>
 #include <time.h>
+
 #include "window.h"
 #include "global.h"
 
@@ -24,7 +25,7 @@
 		_Bool shipNeedsReprinting;
 	} Ship;
 
-	Ship newShip (uint16_t, uint16_t, uint8_t, uint8_t, attr_t shipAttributes);
+	Ship newShip (Point, uint8_t, uint8_t, attr_t);
 	void destroyShip (Ship *);
 	void showShip (Window *, Ship *);
 	void hideShip (Window *, Ship *);
