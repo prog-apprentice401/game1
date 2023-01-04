@@ -12,7 +12,7 @@ Window newWindow (Point begin, Point end, Border border)
 	
 	//wait for 100 ms, so loop is blocked just enough to
 	//ease things for CPU
-	wtimeout (localwin.ncursesWin, 100);
+	wtimeout (localwin.ncursesWin, 0);
 	curs_set (0);
 
 	localwin.begin.y = begin.y;
@@ -20,7 +20,7 @@ Window newWindow (Point begin, Point end, Border border)
 	localwin.end.y = end.y;
 	localwin.end.x = end.x;
 	
-	localwin.windowNeedsRefresh = false;
+	localwin.needsRefresh = false;
 
 	localwin.border.top = border.top;
 	localwin.border.bottom = border.bottom;
@@ -42,7 +42,7 @@ void drawBorder (Window *window)
 		window->border.top, window->border.bottom, window->border.topLeft,
 		window->border.topRight, window->border.bottomLeft,
 		window->border.bottomRight);
-	window->windowNeedsRefresh = true;
+	window->needsRefresh = true;
 
 	return;
 }
@@ -50,7 +50,7 @@ void drawBorder (Window *window)
 void hideBorder (Window *window)
 {
 	wborder (window->ncursesWin, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ');
-	window->windowNeedsRefresh = true;
+	window->needsRefresh = true;
 
 	return;
 }
@@ -67,7 +67,7 @@ void deleteWindow (Window *window)
 void refreshWindow (Window *window)
 {
 	wrefresh (window->ncursesWin);
-	window->windowNeedsRefresh = false;
+	window->needsRefresh = false;
 
 	return;
 }

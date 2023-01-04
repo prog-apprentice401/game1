@@ -19,12 +19,12 @@
 		WINDOW *ncursesWin;
 		Point begin;
 		Point end;
-		bool windowNeedsRefresh;
+		//lets the program update screen only and only when required, skipping useless writes
+		bool needsRefresh;
 		//structure to hold border information
 		Border border;
 	} Window;
 
-	//The first four are coordinates, the next eight are border characters
 	Window newWindow (Point, Point, Border);
 	
 	void drawBorder (Window *);

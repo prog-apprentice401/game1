@@ -6,9 +6,13 @@
 #include "colorPairs.h"
 #include "window.h"
 
+#define FPS 10
 
 int main (int argc, char *argv[])
 {
+	clock_t clocksAtFrameUpdate = 0;
+	float delayBetweenFrames = 1.0f/FPS;
+
 	initscr ();
 	cbreak ();
 	noecho ();
@@ -22,7 +26,7 @@ int main (int argc, char *argv[])
 	int errorStatus = 0;
 	int ch;
 
-	if (COLS < 80 || LINES < 30) {
+	if (COLS < 40 || LINES < 20) {
 		clear ();
 		mvprintw (0, 0, "Screen is smaller than 80x30\n"
 				"Current dimensions: %dx%d"
@@ -42,39 +46,43 @@ int main (int argc, char *argv[])
 	//create a seperate window for the game
 	//as stdscr is used for messages and info
 	Window gameWindow = newWindow (begin, end, defaultBorder);
-
 	Point shipSpawningPoint = {gameWindow.end.y - 3, (gameWindow.end.x - gameWindow.begin.x) / 2};
-
-	Ship ship = newShip (shipSpawningPoint, 10, 1, COLOR_PAIR (YELLOW_ON_BLACK) | A_BOLD);
+	Ship ship = newShip (shipSpawningPoint, 10, 20, 200, COLOR_PAIR (YELLOW_ON_BLACK) | A_BOLD);
 
 	drawBorder (&gameWindow);
 	showShip (&gameWindow, &ship);
 
 	while ((ch = wgetch (gameWindow.ncursesWin)) != 'q') {
 		switch (ch) {
-			case KEY_LEFT: case 'h':
+			case KEY_LEFT: case 'h' :
 				hideShip (&gameWindow, &ship);
 				moveShipLeft (gameWindow.begin.x, gameWindow.end.x, &ship);
+				showShip (&gameWindow, &ship);
 				break;
-			case KEY_RIGHT: case 'l':
+
+			case KEY_RIGHT: case 'l' :
 				hideShip (&gameWindow, &ship);
 				moveShipRight (gameWindow.begin.x, gameWindow.end.x, &ship);
+				showShip (&gameWindow, &ship);
 				break;
-			case ' ': case 'k':
-				//bullets aren't erased if only one is to be added
+
+			case ' ' : case 'k' : case '\n' :
 				shoot (&ship);
 				break;
+
 			default:
 				break;
 		}
-		if (ship.shipNeedsReprinting == true) {
-			showShip (&gameWindow, &ship);
-		} else if (ship.weapon.bulletsNeedReprinting == true) {
-			showBullets (&gameWindow, &ship);
-		}
 
-		if (gameWindow.windowNeedsRefresh == true) {
-			refreshWindow (&gameWindow);
+		hideBullets (&gameWindow, &ship);
+		updateBullets (&ship.weapon, &gameWindow);
+		showBullets (&gameWindow, &ship);
+			mvwprintw (gameWindow.ncursesWin, 15, 0, "%ld", clock ());
+
+
+		if (CLOCKS_TO_SEC (clock () - clocksAtFrameUpdate) >= delayBetweenFrames) {
+			//refreshWindow (&gameWindow);
+			clocksAtFrameUpdate = clock ();
 		}
 	}
 

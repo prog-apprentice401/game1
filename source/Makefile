@@ -1,8 +1,7 @@
-CFLAGS=-Wall -lncurses
-FILES=main.o ship.o colorPairs.o window.o
+CFLAGS=-Wall -lncurses -g
 
-all: ${FILES}
-	gcc ${CFLAGS} ${FILES} -o game.out
+all: main.o ship.o colorPairs.o window.o
+	gcc ${CFLAGS} main.o ship.o colorPairs.o window.o -o game.out
 
 main.o: main.c ship.o colorPairs.o global.h window.o
 	gcc main.c -c ${CFLAGS}
