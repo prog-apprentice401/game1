@@ -1,3 +1,4 @@
+#include <ncurses.h>
 #include "global.h"
 
 #ifndef __WINDOW_H__

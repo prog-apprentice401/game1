@@ -14,11 +14,11 @@ Ship newShip (Point spawningPoint, uint8_t maxBullets, uint8_t bulletSpeed, uint
 	ship.position.y = spawningPoint.y;
 	ship.position.x = spawningPoint.x;
 	ship.lives = lives;
+	ship.shipNeedsReprinting = 1;
 	ship.weapon.currentBullets = 0;
 	ship.weapon.maxBullets = maxBullets;
 	ship.weapon.bulletSpeed = bulletSpeed;
 	ship.weapon.bulletsArray = NULL;
-	ship.weapon.bulletsNeedReprinting = false;
 	ship.shipAttributes = shipAttributes;
 
 	ship.weapon.bulletsArray = calloc (maxBullets, sizeof (Bullet));
@@ -35,6 +35,10 @@ void destroyShip (Ship *shipPtr)
 
 void showShip (Window *windowPtr, Ship *shipPtr)
 {
+	if (!shipPtr->shipNeedsReprinting) {
+		return;
+	}
+
 	wattron (windowPtr->ncursesWin, shipPtr->shipAttributes);
 	mvwaddch (windowPtr->ncursesWin, shipPtr->position.y, shipPtr->position.x, '^');
 	mvwaddstr (windowPtr->ncursesWin, shipPtr->position.y + 1, shipPtr->position.x - 1, "/_\\");
@@ -80,20 +84,16 @@ void hideBullets (Window *windowPtr, Ship *shipPtr)
 			shipPtr->weapon.bulletsArray[i].position.x, ' ');
 	}
 
-	windowPtr->needsRefresh = true;
-	shipPtr->weapon.bulletsNeedReprinting = true;
 	return;
 }
 
 void showBullets (Window *windowPtr, Ship *shipPtr)
 {
+	//don't print if not needed
 	for (int i = 0; i < shipPtr->weapon.currentBullets; i++) {
 		mvwaddch (windowPtr->ncursesWin, shipPtr->weapon.bulletsArray[i].position.y,
 			shipPtr->weapon.bulletsArray[i].position.x, '*' | COLOR_PAIR (YELLOW_ON_BLACK) | A_BOLD);
 	}
-
-	windowPtr->needsRefresh = true;
-	shipPtr->weapon.bulletsNeedReprinting = false;
 
 	return;
 }
@@ -110,7 +110,6 @@ void shoot (Ship *shipPtr)
 	shipPtr->weapon.bulletsArray[newBulletIndex].clocksAtBulletUpdate = clock ();
 
 	shipPtr->weapon.currentBullets++;
-	shipPtr->weapon.bulletsNeedReprinting = true;
 }
 
 void deleteBullet (Weapon * weaponPtr, uint8_t bulletIndex)
@@ -121,19 +120,19 @@ void deleteBullet (Weapon * weaponPtr, uint8_t bulletIndex)
 	weaponPtr->currentBullets--;
 }
 
-void updateBullets (Weapon *weaponPtr, Window * gameWindow)
+void updateBullets (Window *windowptr, Ship *shipPtr)
 {
 	clock_t currentTime;
 
-	for (int i = 0; i < weaponPtr->currentBullets; i++) {
+	for (int i = 0; i < shipPtr->weapon.currentBullets; i++) {
 		currentTime = clock ();
-		if ((currentTime - weaponPtr->bulletsArray[i].clocksAtBulletUpdate) >= CLOCKS_PER_SEC/weaponPtr->bulletSpeed) {
-			weaponPtr->bulletsArray[i].position.y -= 1;
-			weaponPtr->bulletsArray[i].clocksAtBulletUpdate = clock ();
+		if ((currentTime - shipPtr->weapon.bulletsArray[i].clocksAtBulletUpdate) >= CLOCKS_PER_SEC/shipPtr->weapon.bulletSpeed) {
+			shipPtr->weapon.bulletsArray[i].position.y -= 1;
+			shipPtr->weapon.bulletsArray[i].clocksAtBulletUpdate = clock ();
 		}
 
-		if (weaponPtr->bulletsArray[i].position.y <= 0)  {
-			deleteBullet (weaponPtr, i);
+		if (shipPtr->weapon.bulletsArray[i].position.y <= 0)  {
+			deleteBullet (&shipPtr->weapon, i);
 		}
 	}
 }

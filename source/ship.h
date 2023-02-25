@@ -19,7 +19,6 @@
 		uint8_t bulletSpeed;
 		//will be allocated at runtime in memory
 		Bullet *bulletsArray;
-		_Bool bulletsNeedReprinting;
 	} Weapon;
 
 	typedef struct Ship {
@@ -27,7 +26,8 @@
 		uint8_t lives;
 		Weapon weapon;
 		attr_t shipAttributes;
-		_Bool shipNeedsReprinting;
+		//bool from ncurses
+		bool shipNeedsReprinting;
 	} Ship;
 
 	Ship newShip (Point, uint8_t, uint8_t, uint8_t, attr_t);
@@ -41,5 +41,5 @@
 	void deleteBullet (Weapon *, uint8_t);
 	void hideBullets (Window *, Ship *);
 	void showBullets (Window *, Ship *);
-	void updateBullets (Weapon *, Window *);
+	void updateBullets (Window *, Ship *);
 #endif //__SHIP_H__

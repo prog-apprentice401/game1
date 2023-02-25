@@ -10,9 +10,9 @@ Window newWindow (Point begin, Point end, Border border)
 	localwin.ncursesWin = newwin (end.y - begin.y, end.x - begin.x, begin.y, begin.x);
 	keypad (localwin.ncursesWin, true);
 	
-	//wait for 100 ms, so loop is blocked just enough to
+	//wait for 1 ms, so loop is blocked just enough to
 	//ease things for CPU
-	wtimeout (localwin.ncursesWin, 0);
+	wtimeout (localwin.ncursesWin, 1);
 	curs_set (0);
 
 	localwin.begin.y = begin.y;
@@ -66,6 +66,10 @@ void deleteWindow (Window *window)
 
 void refreshWindow (Window *window)
 {
+	if (!window->needsRefresh) {
+		return;
+	}
+
 	wrefresh (window->ncursesWin);
 	window->needsRefresh = false;
 

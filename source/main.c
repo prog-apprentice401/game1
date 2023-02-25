@@ -11,7 +11,6 @@
 int main (int argc, char *argv[])
 {
 	clock_t clocksAtFrameUpdate = 0;
-	float delayBetweenFrames = 1.0f/FPS;
 
 	initscr ();
 	cbreak ();
@@ -19,6 +18,7 @@ int main (int argc, char *argv[])
 	curs_set (0);
 	start_color ();
 	keypad (stdscr, true);
+
 
 	//from colorPairs.h
 	initColorPairs ();
@@ -29,8 +29,8 @@ int main (int argc, char *argv[])
 	if (COLS < 40 || LINES < 20) {
 		clear ();
 		mvprintw (0, 0, "Screen is smaller than 80x30\n"
-				"Current dimensions: %dx%d"
-				" Press q to exit", COLS, LINES);
+		                "Current dimensions: %dx%d"
+		                " Press q to exit", COLS, LINES);
 		refresh ();
 		ch = getch ();
 
@@ -57,13 +57,11 @@ int main (int argc, char *argv[])
 			case KEY_LEFT: case 'h' :
 				hideShip (&gameWindow, &ship);
 				moveShipLeft (gameWindow.begin.x, gameWindow.end.x, &ship);
-				showShip (&gameWindow, &ship);
 				break;
 
 			case KEY_RIGHT: case 'l' :
 				hideShip (&gameWindow, &ship);
 				moveShipRight (gameWindow.begin.x, gameWindow.end.x, &ship);
-				showShip (&gameWindow, &ship);
 				break;
 
 			case ' ' : case 'k' : case '\n' :
@@ -73,15 +71,18 @@ int main (int argc, char *argv[])
 			default:
 				break;
 		}
-
+		
 		hideBullets (&gameWindow, &ship);
-		updateBullets (&ship.weapon, &gameWindow);
+		updateBullets (&gameWindow, &ship);
 		showBullets (&gameWindow, &ship);
-			mvwprintw (gameWindow.ncursesWin, 15, 0, "%ld", clock ());
 
+		if (ship.shipNeedsReprinting) {
+			showShip (&gameWindow, &ship);
+			ship.shipNeedsReprinting = false;
+		}
 
-		if (CLOCKS_TO_SEC (clock () - clocksAtFrameUpdate) >= delayBetweenFrames) {
-			//refreshWindow (&gameWindow);
+		if (CLOCKS_TO_SEC (clock () - clocksAtFrameUpdate) >= 1.0/FPS && gameWindow.needsRefresh) {
+			refreshWindow (&gameWindow);
 			clocksAtFrameUpdate = clock ();
 		}
 	}
