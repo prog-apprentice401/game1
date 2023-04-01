@@ -1,0 +1,31 @@
+This is documentation for code base on specifications
+
+Objects:
+-------
+- Ship
+- Enemey
+- Bullet
+- Weapon
+
+
+Ship:
+	parentWindow	-	ncurses window to print on
+	position	-	position on current window
+	shipStr		-	string to print for ship (char matrix)
+	bulletChar	-	character to print to show a single bullet
+
+	lives		-	number of lives remaining (initially 5)
+	maxBullets	-	maximum allowed bullets (10)
+	currentBullets	-	number of current bullets
+	bulletSpeed	-	speed of bullets in cells/econd
+	*bullets	-	pointer to an array of currently active bullets
+
+	printShip()	-	prints ship on parent window
+	hideShip()	-	erases ship from parent window
+	moveShipRight()	-	moves ship one cell right
+	moveShipLeft () -	moves ship one cell left
+	shoot()		-	adds one bullet to current array, right in front of ship
+	updateBullets()	-	Updates bullet positions based on their previous update time, and ship's bullet speed
+	hideBullets()	-	erases bullets from parent window
+	printBullets()	-	prints bullets on parent window
+	destroyShip	-	releases any dynamic memory, and erases all settings

@@ -1,0 +1,37 @@
+Functioning:
+-----------
+- A ship move left to right on arrow key input
+- Ship can shoot bullets. Maximum of 10 bullets can exist on screen at any given time
+- Ship initially has 5 lives
+- Ship is not affected if enemies collide with it
+
+- Bullets are updated at regular intervals
+- Bullets have a specific target. when shot by the ship, this target is straight ahead
+- Bullets collide with stuff, and whatever the collide with loses one life
+
+- Enemies move weirdly: They move down at the same time, but their sidewards motion is completely independent of eachother
+- Ex:
+	
+	+-------------------+           +-------------------+
+	|  X            X   |           |   ↓           ↘   |
+	|  ↓      X      ↘  |           |   X     ↙      X  |
+	|        ↙          |    -->    |        X          |  
+	|                   |           |                   |
+	|                   |           |                   |
+	+-------------------+           +-------------------+
+- Enemies are to be destroyed when colliding with a bullet
+- Enemies are to two types: big (3 lives) and small (1 life)
+- Scores earned are: big (10 points) small (5 points)
+- Enemies crossing over to lower edge of screen makes player lose as many lives as enemy has
+- Enemy can also shoot bullets directly aimed at you.
+
+- As waves increase, number of enemies increases by 10
+- In each successive wave, higher fraction of enemies is big, it is 0 for first 2 wave
+- In first wave, there are only 10 enemies
+
+Extras:
+- Bonus rounds, where 100x points are given, but enemies are twice as fast, and a single enemy crossing over means certain death
+- In between two waves, bonus rounds are given, optionally
+- Option to avoid Bonus round, by pressing n, when asked
+- VERY RARE: health bonus with kill: on killing an enemy, there may rarely be a health bonus, giving you one life increase.
+- Increased frequency of health boosts in bonus mode

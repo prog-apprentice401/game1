@@ -1,5 +1,8 @@
+#include <curses.h>
 #include <stdio.h>
 #include <ncurses.h>
+#include <limits.h>
+#include <time.h>
 
 #include "global.h"
 #include "ship.h"
@@ -7,11 +10,10 @@
 #include "window.h"
 
 #define FPS 10
+#define MS_PER_FRAME (1.0/FPS)
 
 int main (int argc, char *argv[])
 {
-	clock_t clocksAtFrameUpdate = 0;
-
 	initscr ();
 	cbreak ();
 	noecho ();
@@ -19,10 +21,10 @@ int main (int argc, char *argv[])
 	start_color ();
 	keypad (stdscr, true);
 
-
 	//from colorPairs.h
 	initColorPairs ();
 
+	unsigned long long int msToFrameUpdate = 0;
 	int errorStatus = 0;
 	int ch;
 
@@ -38,13 +40,10 @@ int main (int argc, char *argv[])
 		return -1;
 	}
 
-	//default border to use for windows
 	Border defaultBorder = {ACS_HLINE, ACS_HLINE, ACS_VLINE, ACS_VLINE, ACS_ULCORNER, ACS_URCORNER, ACS_LLCORNER, ACS_LRCORNER, COLOR_PAIR (WHITE_ON_BLACK) | A_DIM};
 	Point begin = {0, 0};
 	Point end = {LINES - 1, COLS};
 
-	//create a seperate window for the game
-	//as stdscr is used for messages and info
 	Window gameWindow = newWindow (begin, end, defaultBorder);
 	Point shipSpawningPoint = {gameWindow.end.y - 3, (gameWindow.end.x - gameWindow.begin.x) / 2};
 	Ship ship = newShip (shipSpawningPoint, 10, 20, 200, COLOR_PAIR (YELLOW_ON_BLACK) | A_BOLD);
@@ -76,14 +75,18 @@ int main (int argc, char *argv[])
 		updateBullets (&gameWindow, &ship);
 		showBullets (&gameWindow, &ship);
 
-		if (ship.shipNeedsReprinting) {
-			showShip (&gameWindow, &ship);
-			ship.shipNeedsReprinting = false;
-		}
+		showShip (&gameWindow, &ship);
 
-		if (CLOCKS_TO_SEC (clock () - clocksAtFrameUpdate) >= 1.0/FPS && gameWindow.needsRefresh) {
-			refreshWindow (&gameWindow);
-			clocksAtFrameUpdate = clock ();
+		if (msToFrameUpdate <= 0) {
+			msToFrameUpdate = MS_PER_FRAME;
+			//refreshWindow(&gameWindow);
+		}
+		else {
+			struct timespec timeBlock = {
+				0,
+				10000
+			};
+			nanosleep(&timeBlock, NULL);
 		}
 	}
 
